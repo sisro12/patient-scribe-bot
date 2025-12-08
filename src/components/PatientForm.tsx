@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Calendar, Pill, Heart, AlertTriangle } from "lucide-react";
+import { User, Calendar, Pill, Heart, AlertTriangle, Save, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface PatientInfo {
   name: string;
@@ -18,11 +21,61 @@ export interface PatientInfo {
 interface PatientFormProps {
   patientInfo: PatientInfo;
   onPatientInfoChange: (info: PatientInfo) => void;
+  onPatientSaved: () => void;
 }
 
-const PatientForm = ({ patientInfo, onPatientInfoChange }: PatientFormProps) => {
+const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: PatientFormProps) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
   const handleChange = (field: keyof PatientInfo, value: string) => {
     onPatientInfoChange({ ...patientInfo, [field]: value });
+  };
+
+  const handleSave = async () => {
+    if (!patientInfo.name.trim()) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال اسم المريض",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const { error } = await supabase.from("patients").insert({
+      name: patientInfo.name.trim(),
+      age: patientInfo.age ? parseInt(patientInfo.age) : null,
+      gender: patientInfo.gender || null,
+      medications: patientInfo.medications.trim() || null,
+      conditions: patientInfo.conditions.trim() || null,
+      allergies: patientInfo.allergies.trim() || null,
+    });
+
+    setIsSaving(false);
+
+    if (error) {
+      console.error("Error saving patient:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حفظ بيانات المريض",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ بيانات المريض بنجاح",
+      });
+      onPatientInfoChange({
+        name: "",
+        age: "",
+        gender: "",
+        medications: "",
+        conditions: "",
+        allergies: "",
+      });
+      onPatientSaved();
+    }
   };
 
   return (
@@ -38,7 +91,7 @@ const PatientForm = ({ patientInfo, onPatientInfoChange }: PatientFormProps) => 
           <div className="space-y-2">
             <Label htmlFor="name" className="flex items-center gap-2 text-foreground/80">
               <User className="h-4 w-4" />
-              الاسم الكامل
+              الاسم الكامل *
             </Label>
             <Input
               id="name"
@@ -124,6 +177,19 @@ const PatientForm = ({ patientInfo, onPatientInfoChange }: PatientFormProps) => 
             dir="rtl"
           />
         </div>
+
+        <Button
+          onClick={handleSave}
+          disabled={isSaving || !patientInfo.name.trim()}
+          className="w-full bg-medical hover:bg-medical-dark"
+        >
+          {isSaving ? (
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="ml-2 h-4 w-4" />
+          )}
+          حفظ بيانات المريض
+        </Button>
       </CardContent>
     </Card>
   );
