@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patients: {
+        Row: {
+          age: number | null
+          allergies: string | null
+          conditions: string | null
+          created_at: string
+          gender: string | null
+          id: string
+          medications: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          age?: number | null
+          allergies?: string | null
+          conditions?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          medications?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number | null
+          allergies?: string | null
+          conditions?: string | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          medications?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
