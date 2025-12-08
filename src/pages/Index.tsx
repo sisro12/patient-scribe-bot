@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PatientForm, { PatientInfo } from "@/components/PatientForm";
 import MedicalChat from "@/components/MedicalChat";
+import PatientsList from "@/components/PatientsList";
 import { Stethoscope, Heart } from "lucide-react";
 
 const Index = () => {
@@ -12,6 +13,11 @@ const Index = () => {
     conditions: "",
     allergies: "",
   });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handlePatientSaved = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-medical/5" dir="rtl">
@@ -41,12 +47,19 @@ const Index = () => {
             مرحباً بك في نظام الاستشارات الطبية
           </h2>
           <p className="text-muted-foreground">
-            أدخل معلومات المريض واطرح أسئلتك للحصول على معلومات طبية مفيدة
+            أدخل معلومات المريض واحفظها أو اطرح أسئلتك للحصول على معلومات طبية مفيدة
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <PatientForm patientInfo={patientInfo} onPatientInfoChange={setPatientInfo} />
+          <div className="space-y-6">
+            <PatientForm 
+              patientInfo={patientInfo} 
+              onPatientInfoChange={setPatientInfo}
+              onPatientSaved={handlePatientSaved}
+            />
+            <PatientsList refreshTrigger={refreshTrigger} />
+          </div>
           <MedicalChat patientInfo={patientInfo} />
         </div>
       </main>
