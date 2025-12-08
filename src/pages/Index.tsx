@@ -1,12 +1,62 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import PatientForm, { PatientInfo } from "@/components/PatientForm";
+import MedicalChat from "@/components/MedicalChat";
+import { Stethoscope, Heart } from "lucide-react";
 
 const Index = () => {
+  const [patientInfo, setPatientInfo] = useState<PatientInfo>({
+    name: "",
+    age: "",
+    gender: "",
+    medications: "",
+    conditions: "",
+    allergies: "",
+  });
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-medical/5" dir="rtl">
+      {/* Header */}
+      <header className="border-b border-medical/10 bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-medical to-medical-dark shadow-lg shadow-medical/20">
+              <Stethoscope className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">نظام إدارة المرضى</h1>
+              <p className="text-sm text-muted-foreground">استشارات طبية ذكية</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-medical">
+            <Heart className="h-5 w-5 animate-pulse" />
+            <span className="text-sm font-medium">صحتك أولاً</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8 text-center">
+          <h2 className="mb-2 text-2xl font-bold text-foreground">
+            مرحباً بك في نظام الاستشارات الطبية
+          </h2>
+          <p className="text-muted-foreground">
+            أدخل معلومات المريض واطرح أسئلتك للحصول على معلومات طبية مفيدة
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <PatientForm patientInfo={patientInfo} onPatientInfoChange={setPatientInfo} />
+          <MedicalChat patientInfo={patientInfo} />
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-medical/10 bg-card/30 py-4">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          <p>جميع المعلومات المقدمة للأغراض التعليمية فقط - استشر طبيبك دائماً</p>
+        </div>
+      </footer>
     </div>
   );
 };
