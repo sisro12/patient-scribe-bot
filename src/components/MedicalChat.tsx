@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Send, Bot, User, Loader2, Stethoscope } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,10 +18,93 @@ interface MedicalChatProps {
   patientInfo: PatientInfo;
 }
 
+interface DoctorType {
+  id: string;
+  name: string;
+  prompt: string;
+  icon: string;
+}
+
+const doctorTypes: DoctorType[] = [
+  {
+    id: "general",
+    name: "طبيب عام",
+    prompt: "أنت طبيب عام متخصص في الرعاية الصحية الأولية والتشخيص العام. قدم نصائح شاملة وحدد متى يجب إحالة المريض لأخصائي.",
+    icon: "🩺"
+  },
+  {
+    id: "cardiologist",
+    name: "طبيب قلب",
+    prompt: "أنت طبيب متخصص في أمراض القلب والأوعية الدموية. ركز على صحة القلب، ضغط الدم، الكوليسترول، وأمراض الشرايين.",
+    icon: "❤️"
+  },
+  {
+    id: "dermatologist",
+    name: "طبيب جلدية",
+    prompt: "أنت طبيب متخصص في الأمراض الجلدية. ركز على مشاكل البشرة، الحساسية الجلدية، الأكزيما، والصدفية.",
+    icon: "🧴"
+  },
+  {
+    id: "neurologist",
+    name: "طبيب أعصاب",
+    prompt: "أنت طبيب متخصص في أمراض الجهاز العصبي. ركز على الصداع، الصرع، السكتات الدماغية، وأمراض الأعصاب.",
+    icon: "🧠"
+  },
+  {
+    id: "orthopedic",
+    name: "طبيب عظام",
+    prompt: "أنت طبيب متخصص في جراحة العظام. ركز على كسور العظام، آلام المفاصل، التهاب المفاصل، وإصابات الرياضة.",
+    icon: "🦴"
+  },
+  {
+    id: "pediatrician",
+    name: "طبيب أطفال",
+    prompt: "أنت طبيب متخصص في طب الأطفال. ركز على صحة الأطفال، التطعيمات، النمو والتطور، وأمراض الطفولة الشائعة.",
+    icon: "👶"
+  },
+  {
+    id: "psychiatrist",
+    name: "طبيب نفسي",
+    prompt: "أنت طبيب متخصص في الطب النفسي. ركز على الاكتئاب، القلق، اضطرابات النوم، والصحة النفسية العامة.",
+    icon: "🧘"
+  },
+  {
+    id: "ophthalmologist",
+    name: "طبيب عيون",
+    prompt: "أنت طبيب متخصص في طب العيون. ركز على مشاكل الرؤية، الماء الأبيض، الماء الأزرق، وأمراض الشبكية.",
+    icon: "👁️"
+  },
+  {
+    id: "ent",
+    name: "طبيب أنف وأذن وحنجرة",
+    prompt: "أنت طبيب متخصص في أمراض الأنف والأذن والحنجرة. ركز على التهابات الأذن، الجيوب الأنفية، ومشاكل الحلق.",
+    icon: "👂"
+  },
+  {
+    id: "gastroenterologist",
+    name: "طبيب جهاز هضمي",
+    prompt: "أنت طبيب متخصص في أمراض الجهاز الهضمي. ركز على مشاكل المعدة، القولون، الكبد، وارتجاع المريء.",
+    icon: "🫁"
+  },
+  {
+    id: "pulmonologist",
+    name: "طبيب صدر",
+    prompt: "أنت طبيب متخصص في أمراض الجهاز التنفسي. ركز على الربو، الحساسية الصدرية، الالتهاب الرئوي، وأمراض الرئة.",
+    icon: "🌬️"
+  },
+  {
+    id: "urologist",
+    name: "طبيب مسالك بولية",
+    prompt: "أنت طبيب متخصص في أمراض المسالك البولية. ركز على التهابات المسالك، حصوات الكلى، ومشاكل البروستاتا.",
+    icon: "💧"
+  }
+];
+
 const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("general");
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -48,13 +132,20 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
         throw new Error("يرجى تسجيل الدخول أولاً");
       }
 
+      const doctorType = doctorTypes.find(d => d.id === selectedDoctor);
+      
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/medical-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ patientInfo, question: input }),
+        body: JSON.stringify({ 
+          patientInfo, 
+          question: input,
+          doctorType: doctorType?.id,
+          doctorPrompt: doctorType?.prompt
+        }),
       });
 
       if (!resp.ok) {
@@ -124,22 +215,48 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
     }
   };
 
+  const currentDoctor = doctorTypes.find(d => d.id === selectedDoctor);
+
   return (
-    <Card className="flex h-[600px] flex-col border-medical/20 bg-card/50 backdrop-blur-sm">
+    <Card className="flex h-[700px] flex-col border-medical/20 bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
           <Stethoscope className="h-5 w-5 text-medical" />
           استشارة طبية ذكية
         </CardTitle>
+        <div className="mt-3">
+          <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
+            <SelectTrigger className="w-full border-medical/20 bg-background/50">
+              <SelectValue placeholder="اختر نوع الطبيب">
+                {currentDoctor && (
+                  <span className="flex items-center gap-2">
+                    <span>{currentDoctor.icon}</span>
+                    <span>{currentDoctor.name}</span>
+                  </span>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {doctorTypes.map((doctor) => (
+                <SelectItem key={doctor.id} value={doctor.id}>
+                  <span className="flex items-center gap-2">
+                    <span>{doctor.icon}</span>
+                    <span>{doctor.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden">
         <ScrollArea className="flex-1 rounded-lg border border-medical/10 bg-background/30 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-muted-foreground">
               <Bot className="h-12 w-12 text-medical/50" />
-              <p>أدخل معلومات المريض ثم اطرح سؤالك الطبي</p>
+              <p>اختر نوع الطبيب واطرح سؤالك الطبي</p>
               <p className="text-sm text-muted-foreground/70">
-                مثال: ما هي الآثار الجانبية المحتملة للأدوية؟
+                {currentDoctor?.name}: سيقدم لك نصائح متخصصة في مجاله
               </p>
             </div>
           ) : (
