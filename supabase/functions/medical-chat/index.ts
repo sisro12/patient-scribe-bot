@@ -19,6 +19,8 @@ interface PatientInfo {
 interface RequestBody {
   patientInfo: PatientInfo;
   question: string;
+  doctorType?: string;
+  doctorPrompt?: string;
 }
 
 const validateInput = (body: RequestBody): { valid: boolean; error?: string } => {
@@ -120,14 +122,17 @@ serve(async (req) => {
       });
     }
 
-    const { patientInfo, question } = body;
+    const { patientInfo, question, doctorPrompt } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `أنت مساعد طبي ذكي. ستتلقى معلومات عن مريض وسؤال طبي. قدم إجابات مفيدة ومعلوماتية.
+    // Use doctor-specific prompt if provided, otherwise use default
+    const doctorContext = doctorPrompt || "أنت مساعد طبي ذكي. ستتلقى معلومات عن مريض وسؤال طبي. قدم إجابات مفيدة ومعلوماتية.";
+
+    const systemPrompt = `${doctorContext}
 
 تنويه مهم: هذه المعلومات للأغراض التعليمية فقط ولا تغني عن استشارة الطبيب المختص. يجب دائماً مراجعة الطبيب للحصول على تشخيص دقيق وعلاج مناسب.
 
