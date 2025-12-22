@@ -60,26 +60,26 @@ serve(async (req) => {
   try {
     // Verify authentication
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      console.log("Missing authorization header");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("Missing or invalid authorization header");
       return new Response(JSON.stringify({ error: "غير مصرح - يرجى تسجيل الدخول" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create Supabase client with user's token
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const jwt = authHeader.replace("Bearer ", "");
 
-    // Verify user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Create Supabase client with service role to verify the JWT
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify user using the JWT directly
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
       console.log("Auth error:", authError);
-      return new Response(JSON.stringify({ error: "غير مصرح - جلسة غير صالحة" }), {
+      return new Response(JSON.stringify({ error: "انتهت صلاحية الجلسة - يرجى تسجيل الدخول مرة أخرى" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

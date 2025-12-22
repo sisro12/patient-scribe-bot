@@ -125,11 +125,16 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
     let assistantContent = "";
 
     try {
-      // Get the current session for authentication
-      const { data: { session } } = await supabase.auth.getSession();
+      // Refresh and get the current session for authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
       
-      if (!session?.access_token) {
-        throw new Error("يرجى تسجيل الدخول أولاً");
+      if (sessionError || !session?.access_token) {
+        toast({
+          title: "انتهت الجلسة",
+          description: "يرجى تسجيل الدخول مرة أخرى",
+          variant: "destructive",
+        });
+        return;
       }
 
       const doctorType = doctorTypes.find(d => d.id === selectedDoctor);
