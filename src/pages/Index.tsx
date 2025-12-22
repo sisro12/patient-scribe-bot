@@ -2,9 +2,12 @@ import { useState } from "react";
 import PatientForm, { PatientInfo } from "@/components/PatientForm";
 import MedicalChat from "@/components/MedicalChat";
 import PatientsList from "@/components/PatientsList";
-import { Stethoscope, Heart } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Stethoscope, Heart, LogOut, User } from "lucide-react";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
   const [patientInfo, setPatientInfo] = useState<PatientInfo>({
     name: "",
     age: "",
@@ -17,6 +20,10 @@ const Index = () => {
 
   const handlePatientSaved = () => {
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
@@ -33,9 +40,19 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">استشارات طبية ذكية</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-medical">
-            <Heart className="h-5 w-5 animate-pulse" />
-            <span className="text-sm font-medium">صحتك أولاً</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-medical">
+              <Heart className="h-5 w-5 animate-pulse" />
+              <span className="text-sm font-medium">صحتك أولاً</span>
+            </div>
+            <div className="flex items-center gap-2 border-r pr-4">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{user?.email}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              تسجيل الخروج
+            </Button>
           </div>
         </div>
       </header>

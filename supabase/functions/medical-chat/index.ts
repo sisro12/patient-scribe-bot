@@ -1,8 +1,53 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Input validation schema
+interface PatientInfo {
+  name?: string;
+  age?: string;
+  gender?: string;
+  medications?: string;
+  conditions?: string;
+  allergies?: string;
+}
+
+interface RequestBody {
+  patientInfo: PatientInfo;
+  question: string;
+}
+
+const validateInput = (body: RequestBody): { valid: boolean; error?: string } => {
+  if (!body.question || typeof body.question !== 'string') {
+    return { valid: false, error: "السؤال مطلوب" };
+  }
+  if (body.question.length > 1000) {
+    return { valid: false, error: "السؤال طويل جداً (الحد الأقصى 1000 حرف)" };
+  }
+  if (body.question.length < 2) {
+    return { valid: false, error: "السؤال قصير جداً" };
+  }
+  
+  // Validate patient info fields
+  const patientInfo = body.patientInfo || {};
+  if (patientInfo.name && patientInfo.name.length > 100) {
+    return { valid: false, error: "اسم المريض طويل جداً" };
+  }
+  if (patientInfo.medications && patientInfo.medications.length > 500) {
+    return { valid: false, error: "قائمة الأدوية طويلة جداً" };
+  }
+  if (patientInfo.conditions && patientInfo.conditions.length > 500) {
+    return { valid: false, error: "قائمة الحالات المرضية طويلة جداً" };
+  }
+  if (patientInfo.allergies && patientInfo.allergies.length > 500) {
+    return { valid: false, error: "قائمة الحساسية طويلة جداً" };
+  }
+  
+  return { valid: true };
 };
 
 serve(async (req) => {
@@ -11,7 +56,71 @@ serve(async (req) => {
   }
 
   try {
-    const { patientInfo, question } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.log("Missing authorization header");
+      return new Response(JSON.stringify({ error: "غير مصرح - يرجى تسجيل الدخول" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create Supabase client with user's token
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Verify user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.log("Auth error:", authError);
+      return new Response(JSON.stringify({ error: "غير مصرح - جلسة غير صالحة" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if user is admin
+    const { data: roleData, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleError) {
+      console.log("Role check error:", roleError);
+      return new Response(JSON.stringify({ error: "خطأ في التحقق من الصلاحيات" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!roleData) {
+      console.log("User is not admin:", user.id);
+      return new Response(JSON.stringify({ error: "غير مصرح - صلاحيات الأدمن مطلوبة" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Admin verified:", user.email);
+
+    const body: RequestBody = await req.json();
+    
+    // Validate input
+    const validation = validateInput(body);
+    if (!validation.valid) {
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { patientInfo, question } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {

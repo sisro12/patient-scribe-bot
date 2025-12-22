@@ -21,4 +21,4 @@ enabled = true
 site_url = "http://localhost:3000"
 
 [functions.medical-chat]
-verify_jwt = false
+verify_jwt = true
