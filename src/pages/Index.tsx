@@ -75,7 +75,7 @@ const Index = () => {
               onPatientInfoChange={setPatientInfo}
               onPatientSaved={handlePatientSaved}
             />
-            <PatientsList refreshTrigger={refreshTrigger} />
+            <PatientsList refreshTrigger={refreshTrigger} onSelectPatient={setPatientInfo} />
           </div>
           <MedicalChat patientInfo={patientInfo} />
         </div>
