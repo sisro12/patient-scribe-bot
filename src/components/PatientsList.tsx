@@ -23,7 +23,7 @@ interface Patient {
 
 interface PatientsListProps {
   refreshTrigger: number;
-  onSelectPatient?: (patient: PatientInfo) => void;
+  onSelectPatient?: (patient: PatientInfo, patientId?: string) => void;
 }
 
 const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) => {
@@ -170,7 +170,7 @@ const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) =>
                       medications: patient.medications || "",
                       conditions: patient.conditions || "",
                       allergies: patient.allergies || "",
-                    })}
+                    }, patient.id)}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">

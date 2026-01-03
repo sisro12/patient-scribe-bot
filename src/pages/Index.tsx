@@ -2,6 +2,7 @@ import { useState } from "react";
 import PatientForm, { PatientInfo } from "@/components/PatientForm";
 import MedicalChat from "@/components/MedicalChat";
 import PatientsList from "@/components/PatientsList";
+import ConversationHistory from "@/components/ConversationHistory";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Heart, LogOut, User } from "lucide-react";
@@ -16,10 +17,21 @@ const Index = () => {
     conditions: "",
     allergies: "",
   });
+  const [selectedPatientId, setSelectedPatientId] = useState<string | undefined>();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [conversationRefreshTrigger, setConversationRefreshTrigger] = useState(0);
 
   const handlePatientSaved = () => {
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handlePatientSelect = (info: PatientInfo, patientId?: string) => {
+    setPatientInfo(info);
+    setSelectedPatientId(patientId);
+  };
+
+  const handleConversationSaved = () => {
+    setConversationRefreshTrigger((prev) => prev + 1);
   };
 
   const handleSignOut = async () => {
@@ -75,9 +87,17 @@ const Index = () => {
               onPatientInfoChange={setPatientInfo}
               onPatientSaved={handlePatientSaved}
             />
-            <PatientsList refreshTrigger={refreshTrigger} onSelectPatient={setPatientInfo} />
+            <PatientsList 
+              refreshTrigger={refreshTrigger} 
+              onSelectPatient={handlePatientSelect} 
+            />
+            <ConversationHistory refreshTrigger={conversationRefreshTrigger} />
           </div>
-          <MedicalChat patientInfo={patientInfo} />
+          <MedicalChat 
+            patientInfo={patientInfo} 
+            selectedPatientId={selectedPatientId}
+            onConversationSaved={handleConversationSaved}
+          />
         </div>
       </main>
 
