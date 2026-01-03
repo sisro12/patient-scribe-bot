@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Bot, User, Loader2, Stethoscope } from "lucide-react";
+import { Send, Bot, User, Loader2, Stethoscope, ImagePlus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { PatientInfo } from "./PatientForm";
@@ -12,6 +12,7 @@ import type { PatientInfo } from "./PatientForm";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  image?: string;
 }
 
 interface MedicalChatProps {
@@ -105,8 +106,46 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("general");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار ملف صورة فقط",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "خطأ",
+        description: "حجم الصورة يجب أن يكون أقل من 5 ميجابايت",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSelectedImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -115,11 +154,14 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !selectedImage) || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input };
+    const userMessage: Message = { role: "user", content: input, image: selectedImage || undefined };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    const imageToSend = selectedImage;
+    setSelectedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setIsLoading(true);
 
     let assistantContent = "";
@@ -149,7 +191,8 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
           patientInfo, 
           question: input,
           doctorType: doctorType?.id,
-          doctorPrompt: doctorType?.prompt
+          doctorPrompt: doctorType?.prompt,
+          image: imageToSend
         }),
       });
 
@@ -286,6 +329,13 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
                     }`}
                     dir="rtl"
                   >
+                    {message.image && (
+                      <img 
+                        src={message.image} 
+                        alt="صورة مرفقة" 
+                        className="mb-2 max-h-40 rounded-lg object-contain"
+                      />
+                    )}
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                   </div>
                 </div>
@@ -304,10 +354,26 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
           )}
         </ScrollArea>
 
+        {selectedImage && (
+          <div className="relative inline-block">
+            <img 
+              src={selectedImage} 
+              alt="معاينة الصورة" 
+              className="h-20 rounded-lg border border-medical/20 object-contain"
+            />
+            <button
+              onClick={removeImage}
+              className="absolute -left-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-md hover:bg-destructive/90"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Button
             onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && !selectedImage) || isLoading}
             className="shrink-0 bg-medical hover:bg-medical-dark"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -320,6 +386,21 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
             className="min-h-[50px] resize-none border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
             dir="rtl"
           />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            ref={fileInputRef}
+            className="hidden"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 border-medical/20 hover:bg-medical/10"
+          >
+            <ImagePlus className="h-4 w-4 text-medical" />
+          </Button>
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
