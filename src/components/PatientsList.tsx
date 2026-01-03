@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Users, Trash2, Loader2, MousePointer } from "lucide-react";
+import { Download, Users, Trash2, Loader2, MousePointer, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 import * as XLSX from "xlsx";
 import { PatientInfo } from "./PatientForm";
 
@@ -27,8 +28,13 @@ interface PatientsListProps {
 
 const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) => {
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  const filteredPatients = patients.filter((patient) =>
+    patient.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const fetchPatients = async () => {
     setIsLoading(true);
@@ -104,30 +110,41 @@ const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) =>
 
   return (
     <Card className="border-medical/20 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
-          <Users className="h-5 w-5 text-medical" />
-          سجل المرضى ({patients.length})
-        </CardTitle>
-        <Button
-          onClick={exportToExcel}
-          variant="outline"
-          size="sm"
-          className="border-medical/20 text-medical hover:bg-medical/10"
-          disabled={patients.length === 0}
-        >
-          <Download className="ml-2 h-4 w-4" />
-          تصدير Excel
-        </Button>
+      <CardHeader className="flex flex-col gap-4 pb-4">
+        <div className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+            <Users className="h-5 w-5 text-medical" />
+            سجل المرضى ({filteredPatients.length})
+          </CardTitle>
+          <Button
+            onClick={exportToExcel}
+            variant="outline"
+            size="sm"
+            className="border-medical/20 text-medical hover:bg-medical/10"
+            disabled={patients.length === 0}
+          >
+            <Download className="ml-2 h-4 w-4" />
+            تصدير Excel
+          </Button>
+        </div>
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="ابحث عن مريض بالاسم..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-9 border-medical/20"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-medical" />
           </div>
-        ) : patients.length === 0 ? (
+        ) : filteredPatients.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
-            لا يوجد مرضى مسجلين حالياً
+            {searchQuery ? "لا توجد نتائج مطابقة للبحث" : "لا يوجد مرضى مسجلين حالياً"}
           </div>
         ) : (
           <ScrollArea className="h-[300px]">
@@ -142,7 +159,7 @@ const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) =>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {patients.map((patient) => (
+                {filteredPatients.map((patient) => (
                   <TableRow 
                     key={patient.id}
                     className="cursor-pointer hover:bg-medical/5 transition-colors"
