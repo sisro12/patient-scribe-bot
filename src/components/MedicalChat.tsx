@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Bot, User, Loader2, Stethoscope, ImagePlus, X } from "lucide-react";
+import { Send, Bot, User, Loader2, Stethoscope, ImagePlus, X, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { PatientInfo } from "./PatientForm";
@@ -17,6 +17,8 @@ interface Message {
 
 interface MedicalChatProps {
   patientInfo: PatientInfo;
+  selectedPatientId?: string;
+  onConversationSaved?: () => void;
 }
 
 interface DoctorType {
@@ -101,15 +103,116 @@ const doctorTypes: DoctorType[] = [
   }
 ];
 
-const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
+const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: MedicalChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("general");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const uploadImage = async (base64Image: string): Promise<string | null> => {
+    try {
+      const base64Data = base64Image.split(",")[1];
+      const mimeType = base64Image.split(";")[0].split(":")[1];
+      const extension = mimeType.split("/")[1];
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: mimeType });
+
+      const { error } = await supabase.storage
+        .from("conversation-images")
+        .upload(fileName, blob);
+
+      if (error) {
+        console.error("Upload error:", error);
+        return null;
+      }
+
+      const { data: publicUrl } = supabase.storage
+        .from("conversation-images")
+        .getPublicUrl(fileName);
+
+      return publicUrl.publicUrl;
+    } catch (error) {
+      console.error("Image upload error:", error);
+      return null;
+    }
+  };
+
+  const saveConversation = async () => {
+    if (messages.length === 0) {
+      toast({
+        title: "تنبيه",
+        description: "لا توجد رسائل لحفظها",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Create conversation
+      const { data: convData, error: convError } = await supabase
+        .from("medical_conversations")
+        .insert({
+          patient_id: selectedPatientId || null,
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Save messages with uploaded images
+      const messagesToInsert = await Promise.all(
+        messages.map(async (msg) => {
+          let imageUrl = null;
+          if (msg.image) {
+            imageUrl = await uploadImage(msg.image);
+          }
+          return {
+            conversation_id: convData.id,
+            role: msg.role,
+            content: msg.content,
+            image_url: imageUrl,
+          };
+        })
+      );
+
+      const { error: msgError } = await supabase
+        .from("conversation_messages")
+        .insert(messagesToInsert);
+
+      if (msgError) throw msgError;
+
+      toast({
+        title: "تم الحفظ",
+        description: "تم حفظ المحادثة بنجاح",
+      });
+
+      setMessages([]);
+      onConversationSaved?.();
+    } catch (error) {
+      console.error("Save conversation error:", error);
+      toast({
+        title: "خطأ",
+        description: "فشل في حفظ المحادثة",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -400,6 +503,20 @@ const MedicalChat = ({ patientInfo }: MedicalChatProps) => {
             className="shrink-0 border-medical/20 hover:bg-medical/10"
           >
             <ImagePlus className="h-4 w-4 text-medical" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={saveConversation}
+            disabled={messages.length === 0 || isSaving}
+            className="shrink-0 border-medical/20 hover:bg-medical/10"
+            title="حفظ المحادثة"
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 text-medical" />
+            )}
           </Button>
         </div>
 
