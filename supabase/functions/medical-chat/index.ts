@@ -21,17 +21,19 @@ interface RequestBody {
   question: string;
   doctorType?: string;
   doctorPrompt?: string;
+  image?: string;
 }
 
 const validateInput = (body: RequestBody): { valid: boolean; error?: string } => {
-  if (!body.question || typeof body.question !== 'string') {
-    return { valid: false, error: "السؤال مطلوب" };
+  // Allow empty question if image is provided
+  if (!body.question && !body.image) {
+    return { valid: false, error: "السؤال أو الصورة مطلوبة" };
   }
-  if (body.question.length > 1000) {
+  if (body.question && typeof body.question !== 'string') {
+    return { valid: false, error: "السؤال غير صالح" };
+  }
+  if (body.question && body.question.length > 1000) {
     return { valid: false, error: "السؤال طويل جداً (الحد الأقصى 1000 حرف)" };
-  }
-  if (body.question.length < 2) {
-    return { valid: false, error: "السؤال قصير جداً" };
   }
   
   // Validate patient info fields
@@ -122,7 +124,7 @@ serve(async (req) => {
       });
     }
 
-    const { patientInfo, question, doctorPrompt } = body;
+    const { patientInfo, question, doctorPrompt, image } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -142,7 +144,22 @@ serve(async (req) => {
 - الجنس: ${patientInfo.gender || 'غير محدد'}
 - الأدوية الحالية: ${patientInfo.medications || 'لا يوجد'}
 - الحالات المرضية السابقة: ${patientInfo.conditions || 'لا يوجد'}
-- الحساسية: ${patientInfo.allergies || 'لا يوجد'}`;
+- الحساسية: ${patientInfo.allergies || 'لا يوجد'}
+
+${image ? 'المريض أرفق صورة طبية (تحليل/أشعة/حالة مرضية). قم بتحليلها وتقديم ملاحظاتك الطبية.' : ''}`;
+
+    // Build user message content
+    const userContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = [];
+    
+    if (question) {
+      userContent.push({ type: "text", text: question });
+    } else if (image) {
+      userContent.push({ type: "text", text: "حلل هذه الصورة الطبية وقدم ملاحظاتك" });
+    }
+    
+    if (image) {
+      userContent.push({ type: "image_url", image_url: { url: image } });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -154,7 +171,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: question },
+          { role: "user", content: userContent },
         ],
         stream: true,
       }),
