@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Users, Trash2, Loader2 } from "lucide-react";
+import { Download, Users, Trash2, Loader2, MousePointer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
+import { PatientInfo } from "./PatientForm";
 
 interface Patient {
   id: string;
@@ -21,9 +22,10 @@ interface Patient {
 
 interface PatientsListProps {
   refreshTrigger: number;
+  onSelectPatient?: (patient: PatientInfo) => void;
 }
 
-const PatientsList = ({ refreshTrigger }: PatientsListProps) => {
+const PatientsList = ({ refreshTrigger, onSelectPatient }: PatientsListProps) => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -141,8 +143,24 @@ const PatientsList = ({ refreshTrigger }: PatientsListProps) => {
               </TableHeader>
               <TableBody>
                 {patients.map((patient) => (
-                  <TableRow key={patient.id}>
-                    <TableCell className="font-medium">{patient.name}</TableCell>
+                  <TableRow 
+                    key={patient.id}
+                    className="cursor-pointer hover:bg-medical/5 transition-colors"
+                    onClick={() => onSelectPatient?.({
+                      name: patient.name,
+                      age: patient.age?.toString() || "",
+                      gender: patient.gender || "",
+                      medications: patient.medications || "",
+                      conditions: patient.conditions || "",
+                      allergies: patient.allergies || "",
+                    })}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <MousePointer className="h-3 w-3 text-medical opacity-50" />
+                        {patient.name}
+                      </div>
+                    </TableCell>
                     <TableCell>{patient.age || "-"}</TableCell>
                     <TableCell>
                       {patient.gender === "male" ? "ذكر" : patient.gender === "female" ? "أنثى" : "-"}
@@ -154,7 +172,10 @@ const PatientsList = ({ refreshTrigger }: PatientsListProps) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deletePatient(patient.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePatient(patient.id);
+                        }}
                         className="text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
