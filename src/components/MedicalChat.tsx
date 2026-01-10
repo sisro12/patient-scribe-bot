@@ -369,15 +369,15 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
   const currentDoctor = doctorTypes.find(d => d.id === selectedDoctor);
 
   return (
-    <Card className="flex h-[700px] flex-col border-medical/20 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
-          <Stethoscope className="h-5 w-5 text-medical" />
+    <Card className="flex h-[500px] sm:h-[600px] lg:h-[700px] flex-col border-medical/20 bg-card/50 backdrop-blur-sm lg:sticky lg:top-20">
+      <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold text-foreground">
+          <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5 text-medical" />
           استشارة طبية ذكية
         </CardTitle>
-        <div className="mt-3">
+        <div className="mt-2 sm:mt-3">
           <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-            <SelectTrigger className="w-full border-medical/20 bg-background/50">
+            <SelectTrigger className="w-full border-medical/20 bg-background/50 text-sm sm:text-base">
               <SelectValue placeholder="اختر نوع الطبيب">
                 {currentDoctor && (
                   <span className="flex items-center gap-2">
@@ -400,32 +400,32 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
           </Select>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden">
-        <ScrollArea className="flex-1 rounded-lg border border-medical/10 bg-background/30 p-4" ref={scrollRef}>
+      <CardContent className="flex flex-1 flex-col gap-3 sm:gap-4 overflow-hidden px-3 sm:px-6">
+        <ScrollArea className="flex-1 rounded-lg border border-medical/10 bg-background/30 p-2 sm:p-4" ref={scrollRef}>
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-muted-foreground">
-              <Bot className="h-12 w-12 text-medical/50" />
-              <p>اختر نوع الطبيب واطرح سؤالك الطبي</p>
-              <p className="text-sm text-muted-foreground/70">
+            <div className="flex h-full flex-col items-center justify-center gap-2 sm:gap-3 text-center text-muted-foreground p-4">
+              <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-medical/50" />
+              <p className="text-sm sm:text-base">اختر نوع الطبيب واطرح سؤالك الطبي</p>
+              <p className="text-xs sm:text-sm text-muted-foreground/70">
                 {currentDoctor?.name}: سيقدم لك نصائح متخصصة في مجاله
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex items-start gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+                  className={`flex items-start gap-2 sm:gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
                 >
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                    className={`flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full ${
                       message.role === "user" ? "bg-medical text-white" : "bg-medical/10 text-medical"
                     }`}
                   >
-                    {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                    {message.role === "user" ? <User className="h-3 w-3 sm:h-4 sm:w-4" /> : <Bot className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </div>
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-3 ${
                       message.role === "user"
                         ? "bg-medical text-white"
                         : "bg-muted text-foreground"
@@ -436,20 +436,20 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
                       <img 
                         src={message.image} 
                         alt="صورة مرفقة" 
-                        className="mb-2 max-h-40 rounded-lg object-contain"
+                        className="mb-2 max-h-32 sm:max-h-40 rounded-lg object-contain"
                       />
                     )}
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed">{message.content}</p>
                   </div>
                 </div>
               ))}
               {isLoading && messages[messages.length - 1]?.role === "user" && (
-                <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-medical/10 text-medical">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-medical/10 text-medical">
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                   </div>
-                  <div className="rounded-2xl bg-muted px-4 py-3">
-                    <p className="text-sm text-muted-foreground">جاري التفكير...</p>
+                  <div className="rounded-2xl bg-muted px-3 py-2 sm:px-4 sm:py-3">
+                    <p className="text-xs sm:text-sm text-muted-foreground">جاري التفكير...</p>
                   </div>
                 </div>
               )}
@@ -477,7 +477,7 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
           <Button
             onClick={sendMessage}
             disabled={(!input.trim() && !selectedImage) || isLoading}
-            className="shrink-0 bg-medical hover:bg-medical-dark"
+            className="shrink-0 bg-medical hover:bg-medical-dark h-10 w-10 sm:h-auto sm:w-auto p-2 sm:px-4"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
@@ -486,7 +486,7 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="اكتب سؤالك الطبي هنا..."
-            className="min-h-[50px] resize-none border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
+            className="min-h-[44px] sm:min-h-[50px] resize-none border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
             dir="rtl"
           />
           <input
@@ -500,7 +500,7 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            className="shrink-0 border-medical/20 hover:bg-medical/10"
+            className="shrink-0 border-medical/20 hover:bg-medical/10 h-10 w-10 sm:h-auto sm:w-auto p-2 sm:px-4"
           >
             <ImagePlus className="h-4 w-4 text-medical" />
           </Button>
@@ -509,7 +509,7 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
             variant="outline"
             onClick={saveConversation}
             disabled={messages.length === 0 || isSaving}
-            className="shrink-0 border-medical/20 hover:bg-medical/10"
+            className="shrink-0 border-medical/20 hover:bg-medical/10 h-10 w-10 sm:h-auto sm:w-auto p-2 sm:px-4"
             title="حفظ المحادثة"
           >
             {isSaving ? (
@@ -520,7 +520,7 @@ const MedicalChat = ({ patientInfo, selectedPatientId, onConversationSaved }: Me
           </Button>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-[10px] sm:text-xs text-muted-foreground">
           ⚠️ هذه المعلومات للأغراض التعليمية فقط ولا تغني عن استشارة الطبيب المختص
         </p>
       </CardContent>
