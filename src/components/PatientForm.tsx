@@ -80,17 +80,17 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
 
   return (
     <Card className="border-medical/20 bg-card/50 backdrop-blur-sm">
-      <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6">
-        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl font-semibold text-foreground">
-          <User className="h-4 w-4 sm:h-5 sm:w-5 text-medical" />
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <User className="h-5 w-5 text-medical" />
           معلومات المريض
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
-        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="name" className="flex items-center gap-2 text-foreground/80 text-sm">
-              <User className="h-3 w-3 sm:h-4 sm:w-4" />
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="flex items-center gap-2 text-foreground/80">
+              <User className="h-4 w-4" />
               الاسم الكامل *
             </Label>
             <Input
@@ -98,14 +98,14 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
               placeholder="أدخل اسم المريض"
               value={patientInfo.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
+              className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
               dir="rtl"
             />
           </div>
           
-          <div className="space-y-1.5 sm:space-y-2">
-            <Label htmlFor="age" className="flex items-center gap-2 text-foreground/80 text-sm">
-              <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+          <div className="space-y-2">
+            <Label htmlFor="age" className="flex items-center gap-2 text-foreground/80">
+              <Calendar className="h-4 w-4" />
               العمر
             </Label>
             <Input
@@ -114,16 +114,16 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
               placeholder="العمر بالسنوات"
               value={patientInfo.age}
               onChange={(e) => handleChange("age", e.target.value)}
-              className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
+              className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
               dir="rtl"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="gender" className="text-foreground/80 text-sm">الجنس</Label>
+        <div className="space-y-2">
+          <Label htmlFor="gender" className="text-foreground/80">الجنس</Label>
           <Select value={patientInfo.gender} onValueChange={(value) => handleChange("gender", value)}>
-            <SelectTrigger className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base">
+            <SelectTrigger className="border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20">
               <SelectValue placeholder="اختر الجنس" />
             </SelectTrigger>
             <SelectContent>
@@ -133,9 +133,9 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
           </Select>
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="medications" className="flex items-center gap-2 text-foreground/80 text-sm">
-            <Pill className="h-3 w-3 sm:h-4 sm:w-4" />
+        <div className="space-y-2">
+          <Label htmlFor="medications" className="flex items-center gap-2 text-foreground/80">
+            <Pill className="h-4 w-4" />
             الأدوية الحالية
           </Label>
           <Textarea
@@ -143,14 +143,14 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
             placeholder="أدخل الأدوية التي يتناولها المريض حالياً..."
             value={patientInfo.medications}
             onChange={(e) => handleChange("medications", e.target.value)}
-            className="min-h-[60px] sm:min-h-[80px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
+            className="min-h-[80px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
             dir="rtl"
           />
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="conditions" className="flex items-center gap-2 text-foreground/80 text-sm">
-            <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+        <div className="space-y-2">
+          <Label htmlFor="conditions" className="flex items-center gap-2 text-foreground/80">
+            <Heart className="h-4 w-4" />
             الحالات المرضية السابقة
           </Label>
           <Textarea
@@ -158,14 +158,14 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
             placeholder="مثل: السكري، الضغط، أمراض القلب..."
             value={patientInfo.conditions}
             onChange={(e) => handleChange("conditions", e.target.value)}
-            className="min-h-[60px] sm:min-h-[80px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
+            className="min-h-[80px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
             dir="rtl"
           />
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label htmlFor="allergies" className="flex items-center gap-2 text-foreground/80 text-sm">
-            <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
+        <div className="space-y-2">
+          <Label htmlFor="allergies" className="flex items-center gap-2 text-foreground/80">
+            <AlertTriangle className="h-4 w-4" />
             الحساسية
           </Label>
           <Textarea
@@ -173,7 +173,7 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
             placeholder="أي حساسية معروفة للأدوية أو المواد..."
             value={patientInfo.allergies}
             onChange={(e) => handleChange("allergies", e.target.value)}
-            className="min-h-[50px] sm:min-h-[60px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20 text-sm sm:text-base"
+            className="min-h-[60px] border-medical/20 bg-background/50 focus:border-medical focus:ring-medical/20"
             dir="rtl"
           />
         </div>
@@ -181,7 +181,7 @@ const PatientForm = ({ patientInfo, onPatientInfoChange, onPatientSaved }: Patie
         <Button
           onClick={handleSave}
           disabled={isSaving || !patientInfo.name.trim()}
-          className="w-full bg-medical hover:bg-medical-dark text-sm sm:text-base"
+          className="w-full bg-medical hover:bg-medical-dark"
         >
           {isSaving ? (
             <Loader2 className="ml-2 h-4 w-4 animate-spin" />
